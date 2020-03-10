@@ -94,8 +94,18 @@ void list_pop_front(LinkedList *list) {
         return;
     }
 
+    if(list->size == 1) {
+        node = list->head;
+        list->head = list->tail = NULL;
+        free(node->data);
+        free(node);
+        list->size--;
+        return;
+    }
+
     node = list->head;
     list->head = list->head->next;
+    list->head->prev = NULL;
     free(node->data);
     free(node);
     list->size--;
@@ -130,8 +140,18 @@ void list_pop_back(LinkedList *list) {
         return;
     }
 
+    if(list->size == 1) {
+        node = list->head;
+        list->head = list->tail = NULL;
+        free(node->data);
+        free(node);
+        list->size--;
+        return;
+    }
+
     node = list->tail;
     list->tail = list->tail->prev;
+    list->tail->next = NULL;
     free(node->data);
     free(node);
     list->size--;
@@ -226,7 +246,40 @@ Node *list_erase(LinkedList *list, size_t pos) {
     return it;
 }
 
-void list_free(LinkedList *list) {
+void list_swap(LinkedList *list1, LinkedList *list2) {
+    Node *aux_node;
+    size_t aux_size;
+    void *aux_data;
+
+    aux_node = list1->head;
+    list1->head = list2->head;
+    list2->head = aux_node;
+
+    aux_node = list1->tail;
+    list1->tail = list2->tail;
+    list2->tail = aux_node;
+
+    aux_size = list1->size;
+    list1->size = list2->size;
+    list2->size = aux_size;
+}
+
+void list_resize(LinkedList *list, size_t new_size, size_t data_size) {
+    void *empty_data;
+
+    while(new_size < list->size) {
+        list_pop_back(list);
+    }
+
+    empty_data = calloc(1, sizeof(data_size));
+    while(new_size > list->size) {
+        list_push_back(list, empty_data, data_size);
+    }
+
+    free(empty_data);
+}
+
+void list_clear(LinkedList *list) {
     if(list == NULL) {
         return;
     }
@@ -234,6 +287,13 @@ void list_free(LinkedList *list) {
     while(list->size > 0) {
         list_pop_front(list);
     }
+}
 
+void list_free(LinkedList *list) {
+    if(list == NULL) {
+        return;
+    }
+
+    list_clear(list);
     free(list);
 }

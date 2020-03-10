@@ -32,14 +32,11 @@ void list_push_front(LinkedList *list, void *new_data, size_t data_size);
 void list_pop_front(LinkedList *list);
 void list_push_back(LinkedList *list, void *new_data, size_t data_size);
 void list_pop_back(LinkedList *list);
-
 Node *list_insert(LinkedList *list, size_t pos, void *new_data, size_t data_size);
 Node *list_erase(LinkedList *list, size_t pos);
-/*
 void list_swap(LinkedList *list1, LinkedList *list2);
-void list_resize(LinkedList *list, size_t data_size);
+void list_resize(LinkedList *list, size_t new_size, size_t data_size);
 void list_clear(LinkedList *list);
-*/
 void list_free(LinkedList *list);
 /*
 // operations
