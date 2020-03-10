@@ -5,9 +5,9 @@
 #include <string.h>
 
 typedef struct _Node {
+    struct _Node *next, *prev;
     void *data;
     size_t data_size;
-    struct _Node *next, *prev;
 } Node;
 
 typedef struct _LinkedList {
@@ -17,6 +17,7 @@ typedef struct _LinkedList {
 
 // initialize
 LinkedList *list_init();
+Node *make_node(void *new_data, size_t data_size);
 
 // capacity
 size_t list_get_size(LinkedList *list);
@@ -35,13 +36,14 @@ void list_pop_back(LinkedList *list);
 Node *list_insert(LinkedList *list, size_t pos, void *new_data, size_t data_size);
 Node *list_erase(LinkedList *list, size_t pos);
 void list_swap(LinkedList *list1, LinkedList *list2);
-void list_resize(LinkedList *list, size_t new_size, size_t data_size);
+void list_resize(LinkedList *list, size_t new_size, void *new_data, size_t data_size);
 void list_clear(LinkedList *list);
 void list_free(LinkedList *list);
-/*
+
 // operations
-void list_splice(Node *position, LinkedList *list, Node *first, Node *last);
-void list_remove(LinkedList *list, void *data, size_t data_size);
+void list_splice(LinkedList *dest, LinkedList *src, size_t pos, size_t first, size_t last);
+/*
+void list_remove(LinkedList *list, void *data);
 void list_remove_if(LinkedList, int (*comp)(void *));
 void list_unique(LinkedList *list);
 void list_merge(LinkedList *list, int (*comp)(void *, void *));
