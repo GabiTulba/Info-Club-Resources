@@ -1,5 +1,23 @@
 #include "LinkedList.h"
 
+void node_swap(Node **a, Node **b) {
+    Node *aux = *a;
+    *a = *b;
+    *b = aux;
+}
+
+void size_t_swap(size_t *a, size_t *b) {
+    size_t aux = *a;
+    *a = *b;
+    *b = aux;
+}
+
+void void_swap(void **a, void **b) {
+    void *aux = *a;
+    *a = *b;
+    *b = aux;
+}
+
 LinkedList *list_init() {
     LinkedList *list = (LinkedList *) malloc(sizeof(LinkedList));
 
@@ -161,20 +179,9 @@ Node *list_erase(LinkedList *list, size_t pos) {
 }
 
 void list_swap(LinkedList *list1, LinkedList *list2) {
-    Node *aux_node;
-    size_t aux_size;
-
-    aux_node = list1->head;
-    list1->head = list2->head;
-    list2->head = aux_node;
-
-    aux_node = list1->tail;
-    list1->tail = list2->tail;
-    list2->tail = aux_node;
-
-    aux_size = list1->size;
-    list1->size = list2->size;
-    list2->size = aux_size;
+    node_swap(&list1->head, &list2->head);
+    node_swap(&list1->tail, &list2->tail);
+    size_t_swap(&(list1->size), &(list2->size));
 }
 
 void list_resize(LinkedList *list, size_t new_size, void *new_data, size_t data_size) {
@@ -196,57 +203,176 @@ void list_free(LinkedList *list) {
 }
 
 void list_splice(LinkedList *dest, LinkedList *src, size_t pos, size_t first, size_t last) {
-    Node *dest_pos, *src_first, *src_last;
-    size_t i;
-
-    if(dest == NULL || src == NULL) {
+    if(pos > dest->size || first > last || last >= src->size)
         return;
-    }
-    if(pos > dest->size || first > last || last >= src->size) {
-        return;
-    }
 
+    Node *src_first = list_access(src, first);
+    Node *src_last = src_first;
+    for(size_t i = first; i < last; i++)
+        src_last = src_last->next;
+
+    if(first == 0)
+        src->head = src_last->next;
+    if(last == src->size - 1)
+        src->tail = src_first->prev;
+    
+    if(last < src->size - 1)
+        src_last->next->prev = src_first->prev;
+    if(first > 0)
+        src_first->prev->next = src_last->next;
+
+    Node *dest_first = NULL, *dest_last = NULL;
     if(pos > 0) {
-        dest_pos = list_access(dest, pos - 1);
+        dest_first = list_access(dest, pos - 1);
+        dest_last = dest_first->next;
+    } else {
+        dest_last = dest->head;
     }
-    src_first = list_access(src, first);
-    src_last = src_first;
+
+    src_last->next = dest_last;
+    src_first->prev = dest_first;
+    if(dest_first != NULL)
+        dest_first->next = src_first;
+    else
+        dest->head = src_first;
+    if(dest_last != NULL)
+        dest_last->prev = src_last;
+    else
+        dest->tail = src_last;
+
     dest->size += last - first + 1;
     src->size -= last - first + 1;
+}
 
-    for(i = first; i < last; i++) {
-        src_last = src_last->next;
+void list_remove(LinkedList *list, void *data, size_t data_size) {
+    while(list->size > 0 && list->head->data_size == data_size && memcmp(list->head->data, data, data_size) == 0)
+            list_pop_front(list);
+    while(list-> size > 0 && list->tail->data_size == data_size && memcmp(list->tail->data, data, data_size) == 0)
+            list_pop_back(list);
+
+    Node *it = list->head, *next_node;
+    while(it != NULL) {
+        next_node = it->next;
+        if(it->data_size == data_size && memcmp(it->data, data, data_size) == 0) {
+            it->next->prev = it->prev;
+            it->prev->next = it->next;
+
+            list->size--;
+            free(it->data);
+            free(it);
+        }
+        it = next_node;
+    }    
+}
+
+void list_remove_if(LinkedList *list, size_t data_size, int (*comp)(void *data)) {
+    while(list->size > 0 && list->head->data_size == data_size && comp(list->head->data))
+            list_pop_front(list);
+    while(list->size > 0 && list->tail->data_size == data_size && comp(list->tail->data))
+            list_pop_back(list);
+
+    Node *it = list->head, *next_node;
+    while(it != NULL) {
+        next_node = it->next;
+        if(it->data_size == data_size && comp(it->data)) {
+            it->next->prev = it->prev;
+            it->prev->next = it->next;
+
+            list->size--;
+            free(it->data);
+            free(it);
+        }
+        it = next_node;
     }
     
-    if(src_first->prev != NULL) {
-        src_first->prev->next = src_last->next;
-    } else {
-        src->head = src_last->next;
-    }
-    if(src_last->next != NULL) {
-        src_last->next->prev = src_first->prev;
-    } else {
-        src->tail = src_first->prev;
-    }
+}
 
-    if(pos == 0) {
-        src_first->prev = NULL;
-        src_last->next = dest->head;
-        dest->head->prev = src_last;
-        dest->head = src_first;
+void list_unique(LinkedList *list) {
+    while(list->size > 1 && list->head->data_size == list->head->next->data_size &&
+          memcmp(list->head->data, list->head->next->data, list->head->data_size) == 0)
+        list_pop_front(list);
+    while(list->size > 1 && list->tail->data_size == list->tail->prev->data_size &&
+          memcmp(list->tail->data, list->tail->prev->data, list->tail->data_size) == 0)
+        list_pop_back(list);
+
+    Node *it = list->head, *next_node;
+    while(it != NULL) {
+        next_node = it->next;
+        if(next_node != NULL && next_node->data_size == it->data_size &&
+           memcmp(next_node->data, it->data, it->data_size) == 0) {
+            next_node->prev = it->prev;
+            it->prev->next = next_node;
+
+            list->size--;
+            free(it->data);
+            free(it);
+        }
+        it = next_node;
+    }
+}
+
+void list_merge(LinkedList *src, LinkedList *dest, int (*comp)(void *, void *)) {
+    if(src->size == 0) {
+        list_swap(src, dest);
+        list_free(src);
+        return;
+    }
+    if(dest->size == 0) {
+        list_free(dest);
         return;
     }
 
-    if(pos == dest->size) {
-        src_first->prev = dest->tail;
-        src_last->next = NULL;
-        dest->tail->next = src_first;
-        dest->tail = src_last;
-        return;
+    LinkedList *out = list_init();
+    Node *src_it = src->head, *dest_it = dest->head, *node;
+
+    if(comp(src_it->data, dest_it->data)) {
+        out->tail = out->head = src_it;
+        src_it = src_it->next;
+    } else {
+        out->tail = out->head = dest_it;
+        dest_it = dest_it->next;
     }
 
-    src_first->prev = dest_pos;
-    src_last->next = dest_pos->next;
-    dest_pos->next->prev = src_last;
-    dest_pos->next = src_first;
+    while(src_it != NULL && dest_it != NULL) {
+        if(comp(src_it->data, dest_it->data) == 1) {
+            node = src_it;
+            src_it = src_it->next;
+        } else {
+            node = dest_it;
+            dest_it = dest_it->next;
+        }
+
+        node->prev = out->tail;
+        out->tail->next = node;
+        out->tail = node;
+    }
+
+    if(src_it != NULL) {
+        src_it->prev = out->tail;
+        out->tail->next = src_it;
+        out->tail= src->tail;
+    } else {
+        dest_it->prev = out->tail;
+        out->tail->next = dest_it;
+        out->tail = dest->tail;
+    }
+
+    out->size = src->size + dest->size;
+    out->tail->next = NULL;
+    src->head = src->tail = NULL;
+    src->size = 0;
+    dest->head = dest->tail = NULL;
+    dest->size = 0;
+    list_swap(src, out);
+    list_free(out);
+    list_free(dest);
+}
+
+void list_reverse(LinkedList *list) {
+    Node *left = list->head, *right = list->tail;
+    for(size_t i = 0; i < list->size / 2; i++) {
+        void_swap(&left->data, &right->data);
+        left = left->next;
+        right = right->prev;
+    }
 }

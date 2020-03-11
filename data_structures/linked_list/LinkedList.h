@@ -15,6 +15,11 @@ typedef struct _LinkedList {
     size_t size;
 }LinkedList;
 
+//utils
+void node_swap(Node **a, Node **b);
+void size_t_swap(size_t *a, size_t *b);
+void void_swap(void **a, void **b);
+
 // initialize
 LinkedList *list_init();
 Node *make_node(void *new_data, size_t data_size);
@@ -42,12 +47,11 @@ void list_free(LinkedList *list);
 
 // operations
 void list_splice(LinkedList *dest, LinkedList *src, size_t pos, size_t first, size_t last);
-/*
-void list_remove(LinkedList *list, void *data);
-void list_remove_if(LinkedList, int (*comp)(void *));
+void list_remove(LinkedList *list, void *data, size_t data_size);
+void list_remove_if(LinkedList *list, size_t data_size, int (*comp)(void *));
 void list_unique(LinkedList *list);
-void list_merge(LinkedList *list, int (*comp)(void *, void *));
-void list_sort(LinkedList *list, int (*comp)(void *, void *));
+void list_merge(LinkedList *dest, LinkedList *src, int (*comp)(void *, void *));
+//void list_sort(LinkedList *list, int (*comp)(void *, void *));
 void list_reverse(LinkedList *list);
-*/
+
 #endif /*LINKED_LIST*/
