@@ -51,7 +51,8 @@ void list_remove(LinkedList *list, void *data, size_t data_size);
 void list_remove_if(LinkedList *list, size_t data_size, int (*comp)(void *));
 void list_unique(LinkedList *list);
 void list_merge(LinkedList *dest, LinkedList *src, int (*comp)(void *, void *));
-//void list_sort(LinkedList *list, int (*comp)(void *, void *));
+void list_split(LinkedList *list, LinkedList **p_left, LinkedList **p_right, size_t split_pos);
+void list_sort(LinkedList **p_list, int (*comp)(void *, void *));
 void list_reverse(LinkedList *list);
 
 #endif /*LINKED_LIST*/

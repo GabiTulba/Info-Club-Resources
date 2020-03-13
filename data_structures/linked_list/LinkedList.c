@@ -314,7 +314,7 @@ void list_unique(LinkedList *list) {
 void list_merge(LinkedList *src, LinkedList *dest, int (*comp)(void *, void *)) {
     if(src->size == 0) {
         list_swap(src, dest);
-        list_free(src);
+        list_free(dest);
         return;
     }
     if(dest->size == 0) {
@@ -366,6 +366,49 @@ void list_merge(LinkedList *src, LinkedList *dest, int (*comp)(void *, void *)) 
     list_swap(src, out);
     list_free(out);
     list_free(dest);
+}
+
+void list_split(LinkedList *list, LinkedList **p_left, LinkedList **p_right, size_t split_pos) {
+    if(split_pos == 0 || split_pos >= list->size)
+        return;
+
+    LinkedList *left = list_init();
+    LinkedList *right = list_init();
+    Node *split_node = list_access(list, split_pos);
+    
+    left->head = list->head;
+    left->tail = split_node->prev;
+    left->tail->next = NULL;
+
+    right->head = split_node;
+    right->tail = list->tail;
+    right->head->prev = NULL;
+
+    left->size = split_pos;
+    right->size = list->size - split_pos;
+    list->size = 0;
+    list->head = list->tail = NULL;
+    list_free(list);
+
+    *p_left = left;
+    *p_right = right;
+}
+
+void list_sort(LinkedList **p_list, int (*comp)(void *, void *)) {
+    LinkedList *list = *p_list;
+    if(list->size < 2)
+        return;
+
+    LinkedList *left, *right;
+    list_split(list, &left, &right, list->size / 2);
+    
+    list_sort(&left, comp);
+    list_sort(&right, comp);
+
+    list_merge(left, right, comp);
+    *p_list = list_init();
+    list_swap(*p_list, left);
+    list_free(left);
 }
 
 void list_reverse(LinkedList *list) {

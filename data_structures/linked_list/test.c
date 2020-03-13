@@ -175,6 +175,33 @@ int main() {
     
     list_free(list);
 
+    //TEST #6
+    printf("\nTEST #6:\n");
+    list = list_init();
+    list_push_back(list, &digits[6], sizeof(int));
+    list_push_back(list, &digits[5], sizeof(int));
+    list_push_back(list, &digits[7], sizeof(int));
+    list_push_back(list, &digits[3], sizeof(int));
+    list_push_back(list, &digits[2], sizeof(int));
+    list_push_back(list, &digits[8], sizeof(int));
+    list_push_back(list, &digits[0], sizeof(int));
+
+    printf("Before:\n");
+    for(Node *it = list->head; it != NULL; it = it->next) {
+        printf("%d ", *(int *)it->data);
+    }
+    printf("\n");
+    
+    list_sort(&list, smaller);
+    
+    printf("After:\n");
+    for(Node *it = list->head; it != NULL; it = it->next) {
+        printf("%d ", *(int *)it->data);
+    }
+    printf("\n");
+
+    list_free(list);
+
     return 0;
 }
 
